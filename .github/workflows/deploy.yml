@@ -6,8 +6,9 @@ on:
       - main
 
 env:
-  PROJECT_ID: agent-starter-pack-456401 
-  REGION: "us-central1"                    # Ensure this matches where your service is located
+  PROJECT_ID: agent-starter-pack-456401
+  REGION: "us-central1"
+  REPOSITORY: "ai-agents"                  # Name of your Artifact Registry repository
 
 jobs:
   deploy:
@@ -44,19 +45,19 @@ jobs:
 
       - name: 'Authorize Docker'
         run: |
-          gcloud auth configure-docker
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
       - name: Build and Push Container
         run: |
-          docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ matrix.service }}:${{ github.sha }} ${{ matrix.path }}
-          docker push gcr.io/${{ env.PROJECT_ID }}/${{ matrix.service }}:${{ github.sha }}
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ matrix.service }}:${{ github.sha }} ${{ matrix.path }}
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ matrix.service }}:${{ github.sha }}
 
       - name: Deploy to Cloud Run
         id: deploy
         uses: 'google-github-actions/deploy-cloudrun@v2'
         with:
           service: ${{ matrix.service }}
-          image: gcr.io/${{ env.PROJECT_ID }}/${{ matrix.service }}:${{ github.sha }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ matrix.service }}:${{ github.sha }}
           region: ${{ env.REGION }}
           # Allow unauthenticated access if this is a public API
           flags: '--allow-unauthenticated'

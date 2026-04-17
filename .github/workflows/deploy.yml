@@ -19,7 +19,7 @@ jobs:
         include:
           # Map each service name to its local directory path
           - service: content-builder
-            path: agents/content_builder
+            path: agents/content-builder
           - service: judge
             path: agents/judge
           - service: orchestrator
@@ -27,7 +27,7 @@ jobs:
           - service: researcher
             path: agents/researcher
           - service: course-creator
-            path: agents/course_creator
+            path: agents/course-creator
 
     steps:
       - name: Checkout Code

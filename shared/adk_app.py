@@ -74,8 +74,9 @@ limiter = Limiter(key_func=a2a_aware_key_func, default_limits=["10 per minute"])
 @click.option(
     "--port",
     type=int,
-    help="Optional. The port of the server",
-    default=os.getenv("PORT", 8000),
+    help="Optional. The port of the server. Can also be set via PORT env var.",
+    default=8000,
+    envvar="PORT",
     show_default=True
 )
 @click.option(

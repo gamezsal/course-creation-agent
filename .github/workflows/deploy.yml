@@ -20,7 +20,7 @@ jobs:
         include:
           # Map each service name to its local directory path
           - service: content-builder
-            path: agents/content-builder
+            path: agents/content_builder
           - service: judge
             path: agents/judge
           - service: orchestrator

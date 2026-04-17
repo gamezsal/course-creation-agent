@@ -20,6 +20,10 @@ import typing
 import warnings
 
 import click
+from fastapi import Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import uvicorn
 
 from google.adk.cli import fast_api
@@ -39,6 +43,18 @@ LOG_LEVELS = click.Choice(
     ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     case_sensitive=False,
 )
+
+# Initialize Limiter with A2A bypass logic.
+# Default limits are applied to all routes since we don't 
+# explicitly decorate them in this entry point.
+def a2a_aware_key_func(request: Request):
+    # Bypass for local traffic (common for A2A communication)
+    if request.client and request.client.host in ("127.0.0.1", "localhost"):
+        return None
+    return get_remote_address(request)
+
+limiter = Limiter(key_func=a2a_aware_key_func, default_limits=["10 per minute"])
+
 
 @click.command()
 @click.argument(
@@ -247,6 +263,11 @@ def main(
         reload_agents=reload_agents,
         extra_plugins=extra_plugins,
     )
+
+    # Attach rate limiting to the app
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
     if a2a:
         from starlette.middleware.base import BaseHTTPMiddleware
         from a2a_utils import a2a_card_dispatch

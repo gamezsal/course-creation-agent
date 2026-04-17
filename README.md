@@ -81,3 +81,6 @@ To deploy to Google Cloud Run, you need to deploy each service individually and 
 
 3.  **Access:**
     Open the App's URL in your browser.
+
+    **Pipeline Config**
+    Add approach here

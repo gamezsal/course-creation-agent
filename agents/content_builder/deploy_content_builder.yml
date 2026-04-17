@@ -1,0 +1,30 @@
+name: Deploy Content Builder
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'agents/content_builder/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and Deploy
+        run: |
+          gcloud run deploy content-builder \
+            --source ./agents/content_builder \
+            --region us-central1 \
+            --service-account=github-actions-deployer@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
+            --quiet

@@ -27,7 +27,7 @@ jobs:
           - service: researcher
             path: agents/researcher
           - service: course-creator
-            path: agents/course-creator
+            path: app
 
     steps:
       - name: Checkout Code

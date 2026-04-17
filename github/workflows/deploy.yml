@@ -1,0 +1,66 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: agent-starter-pack-456401 
+  REGION: "us-central1"                    # Ensure this matches where your service is located
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # This defines the list of services to deploy
+        service: [content-builder, judge, orchestrator, researcher, course-creator]
+        include:
+          # Map each service name to its local directory path
+          - service: content-builder
+            path: agents/content_builder
+          - service: judge
+            path: agents/judge
+          - service: orchestrator
+            path: agents/orchestrator
+          - service: researcher
+            path: agents/researcher
+          - service: course-creator
+            path: agents/course_creator
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: 'Authorize Docker'
+        run: |
+          gcloud auth configure-docker
+
+      - name: Build and Push Container
+        run: |
+          docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ matrix.service }}:${{ github.sha }} ${{ matrix.path }}
+          docker push gcr.io/${{ env.PROJECT_ID }}/${{ matrix.service }}:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: ${{ matrix.service }}
+          image: gcr.io/${{ env.PROJECT_ID }}/${{ matrix.service }}:${{ github.sha }}
+          region: ${{ env.REGION }}
+          # Allow unauthenticated access if this is a public API
+          flags: '--allow-unauthenticated'
+
+      - name: Show Output
+        run: |
+          echo "App is deployed and available at: ${{ steps.deploy.outputs.url }}"

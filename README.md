@@ -83,4 +83,4 @@ To deploy to Google Cloud Run, you need to deploy each service individually and 
     Open the App's URL in your browser.
 
     **Pipeline Config**
-    Add approach here
+    Add approach here to include deploy.yml inside the .github/workflows of which structure was created at the top root directory of the workspace

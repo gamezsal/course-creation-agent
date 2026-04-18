@@ -3,8 +3,11 @@ FROM python:3.12-slim
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Install the project into /app
-COPY . /app
+# Copy requirements from root and agent code from the agent directory
+# This works because the build context is now the repository root
+COPY requirements.txt /app/
+COPY agents/researcher/ /app/
+
 WORKDIR /app
 
 # Allow statements and log messages to immediately appear in the logs

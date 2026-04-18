@@ -1,16 +1,31 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Copy requirements from root and agent code from the agent directory
+COPY requirements.txt /app/
+COPY agents/content_builder/ /app/
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# Allow statements and log messages to immediately appear in the logs
+ENV PYTHONUNBUFFERED=1
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir slowapi # Ensure our new rate-limiting lib is here
+# Prepare virtual environment path
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-COPY . .
+# Install dependencies
+RUN uv venv /opt/venv && \
+    . /opt/venv/bin/activate && \
+    if [ -f pyproject.toml ]; then \
+        uv sync --active; \
+    elif [ -f requirements.txt ]; then \
+        uv pip install -U -r requirements.txt slowapi; \
+    else \
+        echo "Neither pyproject.toml nor requirements.txt found" && exit 1; \
+    fi
 
-# Run the ADK app. Cloud Run injects the PORT env var automatically.
-CMD ["python", "adk_app.py", ".", "--host", "0.0.0.0"]
+# Run ADK API Server
+CMD ["python3", "adk_app.py", "--host", "0.0.0.0", "--trace_to_cloud", "--a2a"]

@@ -4,7 +4,7 @@ FROM python:3.12-slim
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # Copy the application code specifically from the 'app' directory
-COPY app/ /app/
+COPY . /app/
 WORKDIR /app
 
 # Allow statements and log messages to immediately appear in the logs

@@ -3,12 +3,13 @@ FROM python:3.12-slim
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+WORKDIR /app
+
 # Copy requirements from root and agent code from the agent directory
 # This works because the build context is now the repository root
-COPY requirements.txt /app/
-COPY agents/researcher/ /app/
-
-WORKDIR /app
+COPY requirements.txt adk_app.py ./
+COPY agents/orchestrator/ .
+COPY adk_app.py .
 
 # Allow statements and log messages to immediately appear in the logs
 ENV PYTHONUNBUFFERED=1
@@ -30,7 +31,7 @@ RUN uv venv /opt/venv && \
 
 # Set host and port
 ENV HOST 0.0.0.0
-EXPOSE $PORT
 
 # Run ADK API Server
-CMD ["./run.sh"]
+# Shell form ensures $PORT is expanded correctly for Cloud Run
+CMD python3 adk_app.py --host 0.0.0.0 --port $PORT --trace_to_cloud --a2a

@@ -3,11 +3,13 @@ FROM python:3.12-slim
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Copy requirements from root and agent code from the agent directory
-COPY requirements.txt /app/
-COPY agents/content_builder/ /app/
-
 WORKDIR /app
+
+# Copy requirements from root and agent code from the agent directory
+COPY requirements.txt adk_app.py ./
+COPY agents/content_builder/ .
+# Ensure the shared app file is the one used (overwriting any local symlinks)
+COPY adk_app.py .
 
 # Allow statements and log messages to immediately appear in the logs
 ENV PYTHONUNBUFFERED=1
@@ -22,10 +24,11 @@ RUN uv venv /opt/venv && \
     if [ -f pyproject.toml ]; then \
         uv sync --active; \
     elif [ -f requirements.txt ]; then \
-        uv pip install -U -r requirements.txt slowapi; \
+        uv pip install -U -r requirements.txt; \
     else \
         echo "Neither pyproject.toml nor requirements.txt found" && exit 1; \
     fi
 
 # Run ADK API Server
-CMD ["python3", "adk_app.py", "--host", "0.0.0.0", "--trace_to_cloud", "--a2a"]
+# Shell form ensures $PORT is expanded correctly for Cloud Run
+CMD python3 adk_app.py --host 0.0.0.0 --port $PORT --trace_to_cloud --a2a

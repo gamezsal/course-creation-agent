@@ -3,9 +3,11 @@ FROM python:3.12-slim
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Copy the application code specifically from the 'app' directory
-COPY . /app/
+# Copy requirements from root and app code from the app directory
+# This works because the build context is the repository root
 WORKDIR /app
+COPY requirements.txt adk_app.py ./
+COPY app/ /app/
 
 # Allow statements and log messages to immediately appear in the logs
 ENV PYTHONUNBUFFERED=1

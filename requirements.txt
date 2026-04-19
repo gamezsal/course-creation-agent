@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+slowapi
+click
+google-cloud-run-adk
+google-cloud-logging
+google-cloud-trace
+httpx

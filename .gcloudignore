@@ -1,0 +1,18 @@
+# Standard version control
+.git/
+.gitignore
+.gcloudignore
+
+# Exclude all Python virtual environments and caches
+**/.venv/
+**/venv/
+**/env/
+**/__pycache__/
+**/*.pyc
+
+# Exclude heavy system and IDE folders
+**/.codeoss/
+**/.vscode/
+**/node_modules/
+**/.npm/
+**/.cache/
